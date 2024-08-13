@@ -23,11 +23,13 @@ set(SOURCES
     ${ARAGORN_CORE}
     ${ARAGORN_UTIL}
     
+    src/app.cpp
     src/main.cpp
 )
 
 add_executable(aragorn ${SOURCES})
 
+# collect all headers
 target_include_directories(aragorn PUBLIC include)
 target_link_libraries(aragorn PRIVATE
     Vulkan::Vulkan
