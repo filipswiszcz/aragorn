@@ -17,13 +17,15 @@ set(ARAGORN_CORE
     # src/core/
 )
 set(ARAGORN_UTIL
+    src/util/cmd_family_finder.cpp
+    src/util/gpu_picker.cpp
     src/util/logger.cpp
 )
 set(SOURCES
     ${ARAGORN_CORE}
     ${ARAGORN_UTIL}
     
-    src/app.cpp
+    src/engine.cpp
     src/main.cpp
 )
 

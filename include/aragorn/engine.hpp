@@ -4,16 +4,18 @@
 
 #include <aragorn/util/logger.hpp>
 
-#ifndef MANAGER_H
-#define MANAGER_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
-class App {
+class Engine {
 
     public:
 
         void run();
 
-        util::Logger getLogger();
+        util::Logger getLogger() {return logger;}
+
+        VkInstance getVkInstance() {return instance;}
 
     private:
 
@@ -22,8 +24,10 @@ class App {
         // settings -> (width, height etc)
 
         GLFWwindow* window;
-
         VkInstance instance;
+        VkPhysicalDevice phys_device = VK_NULL_HANDLE;
+        VkDevice device;
+        VkQueue queue;
 
         const char** glfw_extensions;
         uint32_t glfw_extension_k = 0;
@@ -32,9 +36,13 @@ class App {
 
         void init_vulkan();
 
+        void init_physical_device();
+
+        void init_logical_device();
+
         void init_core_loop();
 
-        void clean_up();
+        void init_engine_destruction();
 
 };
 

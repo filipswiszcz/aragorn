@@ -1,9 +1,9 @@
-#include <aragorn/app.hpp>
+#include <aragorn/engine.hpp>
 
 int main() {
     
-    App app;
-    app.run();
+    Engine engine;
+    engine.run();
 
     return 0;
 }
