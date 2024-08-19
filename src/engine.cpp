@@ -1,3 +1,4 @@
+#include <set>
 #include <vector>
 
 #include <aragorn/util/cmd_family_finder.hpp>
@@ -71,6 +72,12 @@ void Engine::init_vulkan() {
 
 }
 
+void Engine::init_surface() {
+    if (glfwCreateWindowSurface(this -> instance, this -> window, nullptr, &this -> surface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create surface!");
+    }
+}
+
 void Engine::init_physical_device() {
     this -> phys_device = util::get_most_suitable_gpu(this -> instance);
 }
@@ -79,28 +86,40 @@ void Engine::init_logical_device() {
 
     std::vector<VkQueueFamilyProperties> families = util::get_all_queue_families(this -> phys_device);
 
-    VkDeviceQueueCreateInfo queue_device_info{};
-    queue_device_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    
     util::QueueFamilyFinder family_finder;
     int i = 0;
 
     for (const auto& family : families) {
         if (family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            family_finder.families = i;
+            family_finder.graphics_cmds_families = i;
+        }
+
+        VkBool32 status = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(this -> phys_device, i, this -> surface, &status);
+        if (status) {
+            family_finder.surface_presentations_families = i;
         } i++;
     }
-    
-    queue_device_info.queueFamilyIndex = family_finder.families.value();\
-    queue_device_info.queueCount = 1;
 
+    std::vector<VkDeviceQueueCreateInfo> queue_devices_info;
+    std::set<uint32_t> unique_families = {family_finder.graphics_cmds_families.value(), family_finder.surface_presentations_families.value()};
+    
     float queue_priority = 1.0f;
-    queue_device_info.pQueuePriorities = &queue_priority;
+
+    for (uint32_t family : unique_families) {
+        VkDeviceQueueCreateInfo queue_device_info{};
+        queue_device_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_device_info.queueFamilyIndex = family;
+        queue_device_info.queueCount = 1;
+        queue_device_info.pQueuePriorities = &queue_priority;
+
+        queue_devices_info.push_back(queue_device_info);
+    }
 
     VkDeviceCreateInfo device_info{};
     device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_info.pQueueCreateInfos = &queue_device_info;
-    device_info.queueCreateInfoCount = 1;
+    device_info.pQueueCreateInfos = queue_devices_info.data();
+    device_info.queueCreateInfoCount = static_cast<uint32_t>(queue_devices_info.size());
 
     VkPhysicalDeviceFeatures device_features{};
     device_info.pEnabledFeatures = &device_features;
@@ -119,7 +138,8 @@ void Engine::init_logical_device() {
         // TODO handle error
     }
 
-    vkGetDeviceQueue(this -> device, family_finder.families.value(), 0, &queue);
+    vkGetDeviceQueue(this -> device, family_finder.graphics_cmds_families.value(), 0, &graphics_cmds_queue);
+    vkGetDeviceQueue(this -> device, family_finder.surface_presentations_families.value(), 0, &surface_presentations_queue);
 }
 
 void Engine::init_core_loop() {
@@ -135,7 +155,9 @@ void Engine::init_engine_destruction() {
 
     }
 
+    vkDestroySurfaceKHR(this -> instance, this -> surface, nullptr);
     vkDestroyInstance(this -> instance, nullptr);
+
     glfwDestroyWindow(this -> window);
     glfwTerminate();
 }

@@ -1,6 +1,10 @@
+#define VK_USE_PLATFORM_MACOS_KHR
+
 #define GLFW_INCLUDE_VULKAN
-#define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
+
+#define GLFW_EXPOSE_NATIVE_COCOA
+#include <GLFW/glfw3native.h>
 
 #include <aragorn/util/logger.hpp>
 
@@ -25,9 +29,12 @@ class Engine {
 
         GLFWwindow* window;
         VkInstance instance;
+        VkSurfaceKHR surface;
         VkPhysicalDevice phys_device = VK_NULL_HANDLE;
         VkDevice device;
-        VkQueue queue;
+        
+        VkQueue graphics_cmds_queue;
+        VkQueue surface_presentations_queue;
 
         const char** glfw_extensions;
         uint32_t glfw_extension_k = 0;
@@ -35,6 +42,8 @@ class Engine {
         void init_window();
 
         void init_vulkan();
+
+        void init_surface();
 
         void init_physical_device();
 

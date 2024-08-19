@@ -10,7 +10,8 @@ namespace util {
 
     struct QueueFamilyFinder {
 
-        std::optional<uint32_t> families;
+        std::optional<uint32_t> graphics_cmds_families;
+        std::optional<uint32_t> surface_presentations_families;
 
     };
 
